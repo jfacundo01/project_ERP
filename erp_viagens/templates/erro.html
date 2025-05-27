@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block titulo %}Erro{% endblock %}
+
+{% block conteudo %}
+<style>
+    .erro-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .erro-container h1 {
+        font-size: 48px;
+        color: #dc2626;
+        margin-bottom: 20px;
+    }
+
+    .erro-container p {
+        font-size: 18px;
+        color: #444;
+        margin-bottom: 30px;
+    }
+
+    .erro-container a {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #3b82f6;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+    }
+
+    .erro-container a:hover {
+        background-color: #2563eb;
+    }
+</style>
+
+<div class="erro-container">
+    <h1>❌ Erro</h1>
+    <p>{{ mensagem or "Ocorreu um erro inesperado. Tente novamente mais tarde." }}</p>
+    <a href="/painel">⬅️ Voltar à página inicial</a>
+</div>
+{% endblock %}

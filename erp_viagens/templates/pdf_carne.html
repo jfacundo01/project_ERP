@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <style>
+        @page {
+            margin: 20px 30px;
+            size: A4;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            background: #fff;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            position: relative;
+        }
+
+        .logo {
+            max-width: 80px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .header-info {
+            position: absolute;
+            top: 0;
+            right: 0;
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .info-container {
+            display: flex;
+            justify-content: space-between;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+        }
+
+        .info, .resumo {
+            flex: 1;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin: 0 10px;
+        }
+
+        .info p, .resumo p {
+            font-size: 14px;
+            margin: 8px 0;
+        }
+
+        .info strong, .resumo strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .resumo {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+        }
+
+        .parcelas {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .carne {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            page-break-inside: avoid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carne-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .carne-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .carne-codigo {
+            font-size: 12px;
+            color: #666;
+            background: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .carne-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .carne-item {
+            margin-bottom: 8px;
+        }
+
+        .carne-item strong {
+            font-weight: 600;
+            color: #2c3e50;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .cut-line {
+            border-top: 2px dashed #ccc;
+            margin: 25px 0 15px;
+            position: relative;
+        }
+
+        .cut-line::after {
+            content: 'Corte aqui';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-style: italic;
+            color: #999;
+            background: #fff;
+            padding: 0 8px;
+        }
+
+        .comprovante {
+            font-size: 13px;
+            color: #555;
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .comprovante strong {
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .comprovante p {
+            margin: 5px 0;
+        }
+
+        .barcode {
+            margin-top: 10px;
+            text-align: center;
+            font-family: 'Libre Barcode 128', cursive;
+            font-size: 28px;
+            letter-spacing: 2px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 11px;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .watermark {
+            position: absolute;
+            opacity: 0.1;
+            font-size: 80px;
+            font-weight: bold;
+            color: #3498db;
+            transform: rotate(-30deg);
+            z-index: -1;
+            top: 30%;
+            left: 20%;
+        }
+
+        @media print {
+            body {
+                font-size: 12pt;
+            }
+            .carne {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="header-info no-print">
+            Emitido em: {{ data_emissao|default("__/__/____") }}
+        </div>
+        <img src="https://www.casejp.com/galeria/sua-logo-marca-11.png" alt="Logo" class="logo" />
+        <h2>Carnê de Pagamento</h2>
+    </div>
+
+    <div class="info-container">
+        <div class="info">
+            <p><strong>Cliente:</strong> {{ venda.cliente }}</p>
+            <p><strong>CPF/CNPJ:</strong> {{ venda.documento|default("Não informado") }}</p>
+            <p><strong>Endereço:</strong> {{ venda.endereco|default("Não informado") }}</p>
+            <p><strong>Telefone:</strong> {{ venda.telefone|default("Não informado") }}</p>
+        </div>
+        
+        <div class="resumo">
+            <p><strong>Pacote:</strong> {{ venda.pacote }}</p>
+            <p><strong>Total da Venda:</strong> R$ {{ "%.2f"|format(venda.valor_total|float) }}</p>
+            <p><strong>Entrada:</strong> R$ {{ "%.2f"|format(venda.entrada|default(0)|float) }}</p>
+            <p><strong>Forma de pagamento:</strong> Carnê</p>
+            <p><strong>Nº de parcelas:</strong> {{ parcelas }}</p>
+        </div>
+    </div>
+
+    <div class="parcelas">
+        <h3 style="color: #2c3e50; margin: 20px 0; text-align: center; font-size: 18px;">Detalhamento das Parcelas</h3>
+
+        {% for i in range(parcelas) %}
+        <div class="carne">
+            <div class="watermark no-print">Parcela {{ i + 1 }}</div>
+            
+            <div class="carne-header">
+                <div class="carne-title">Parcela {{ i + 1 }} de {{ parcelas }}</div>
+                <div class="carne-codigo">Código: CN{{ venda.id[:6] }}{{ "%02d"|format(i + 1) }}</div>
+            </div>
+            
+            <div class="carne-content">
+                <div class="carne-col">
+                    <div class="carne-item">
+                        <strong>Valor:</strong> R$ {{ "%.2f"|format(parcelas_valores[i]) }}
+                    </div>
+                    <div class="carne-item">
+                        <strong>Vencimento:</strong> {{ vencimentos[i] }}
+                    </div>
+                </div>
+                <div class="carne-col">
+                    <div class="carne-item">
+                        <strong>Multa:</strong> 2% após vencimento
+                    </div>
+                    <div class="carne-item">
+                        <strong>Juros:</strong> 0,033% ao dia
+                    </div>
+                </div>
+            </div>
+
+            <div class="cut-line no-print"></div>
+
+            <div class="comprovante">
+                <strong>Recibo do Pagamento</strong>
+                <p><strong>Beneficiário:</strong> {{ empresa.nome|default("Nome da Empresa") }}</p>
+                <p><strong>CNPJ:</strong> {{ empresa.cnpj|default("00.000.000/0000-00") }}</p>
+                <p><strong>Parcela:</strong> {{ i + 1 }} de {{ parcelas }}</p>
+                <p><strong>Valor:</strong> R$ {{ "%.2f"|format(parcelas_valores[i]) }}</p>
+                <p><strong>Vencimento:</strong> {{ vencimentos[i] }}</p>
+                <p><strong>Código:</strong> CN{{ venda.id[:6] }}{{ "%02d"|format(i + 1) }}</p>
+                
+                <div class="barcode">*CN{{ venda.id[:6] }}{{ "%02d"|format(i + 1) }}*</div>
+                
+                <p style="margin-top: 15px; font-size: 11px; text-align: center;">
+                    ________________________________________<br>
+                    Assinatura/Carimbo
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="footer no-print">
+        <p>{{ empresa.nome|default("Nome da Empresa") }} - CNPJ: {{ empresa.cnpj|default("00.000.000/0000-00") }}</p>
+        <p>{{ empresa.endereco|default("Endereço da Empresa") }} - {{ empresa.telefone|default("(00) 0000-0000") }} - {{ empresa.email|default("email@empresa.com") }}</p>
+        <p>Este documento não tem valor fiscal. Em caso de dúvidas, entre em contato conosco.</p>
+    </div>
+
+</body>
+
+</html>

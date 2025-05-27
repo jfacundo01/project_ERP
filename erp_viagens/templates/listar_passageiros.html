@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block titulo %}Passageiros{% endblock %}
+{% block conteudo %}
+<h2>👤 Passageiros</h2>
+<table id="tabela-passageiros">
+    <thead>
+        <tr>
+            <th>ID</th><th>Nome</th><th>Documento</th><th>Telefone</th><th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for p in passageiros %}
+        <tr data-id="{{ p.id }}">
+            <td>{{ p.id }}</td>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.cpf }}</td>
+            <td>{{ p.telefone }}</td>
+            <td style="white-space: nowrap;">
+                <button class="btn-excluir" data-id="{{ p.id }}" style="background-color: #e74c3c; color: white;">
+                    Excluir
+                </button>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tabela = document.getElementById("tabela-passageiros");
+    tabela.addEventListener("click", async (event) => {
+        if(event.target.classList.contains("btn-excluir")) {
+            const btn = event.target;
+            const id = btn.getAttribute("data-id");
+
+            if(!id) {
+                alert("ID do passageiro não encontrado.");
+                return;
+            }
+
+            if(confirm("Tem certeza que deseja excluir este passageiro?")) {
+                try {
+                    btn.disabled = true;
+                    btn.textContent = "Excluindo...";
+
+                    const response = await fetch(`/passageiros/excluir/${id}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    if(!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if(data.success) {
+                        const linha = btn.closest("tr");
+                        if(linha) linha.remove();
+                    } else {
+                        alert("Erro ao excluir: " + (data.error || "Erro desconhecido"));
+                    }
+                } catch(err) {
+                    alert("Erro na requisição: " + err.message);
+                } finally {
+                    if(document.body.contains(btn)) {
+                        btn.disabled = false;
+                        btn.textContent = "Excluir";
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+
+{% endblock %}

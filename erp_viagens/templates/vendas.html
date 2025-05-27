@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<h2 style="margin-bottom: 20px;">📦 Registro de Vendas</h2>
+
+<style>
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 0 auto 40px auto;
+    }
+
+    label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    input,
+    select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    .btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .btn:hover {
+        background-color: #2563eb;
+    }
+
+    .table-vendas {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        border-collapse: collapse;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-vendas th,
+    .table-vendas td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .table-vendas th {
+        background-color: #f3f4f6;
+        font-weight: 600;
+    }
+
+    .table-vendas tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+</style>
+
+<form id="formVenda" class="form-container">
+    <label>Cliente:</label>
+    <select name="cliente" id="cliente" required>
+        <option value="">Selecione o passageiro</option>
+        {% for passageiro in passageiros %}
+        <option value="{{ passageiro.nome }}" data-id="{{ passageiro.id }}">
+            {{ passageiro.nome }} (CPF: {{ passageiro.cpf }})
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Pacote (Viagem):</label>
+    <select name="pacote" id="pacote" required>
+        <option value="">Selecione o pacote</option>
+        {% for viagem in viagens %}
+        <option value="{{ viagem.origem }} ➜ {{ viagem.destino }} - {{ viagem.data_saida }}" data-id="{{ viagem.id }}"
+            data-valor="{{ viagem.preco }}">
+            {{ viagem.origem }} ➜ {{ viagem.destino }} ({{ viagem.data_saida }}) - R$ {{ "%.2f"|format(viagem.preco) }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Quantidade:</label>
+    <input type="number" name="quantidade" min="1" required>
+
+    <label>Valor Total (R$):</label>
+    <input type="number" name="valor_total" step="0.01" readonly required>
+
+    <button type="button" class="btn" onclick="abrirModalResumo()">Registrar Venda</button>
+</form>
+
+{% if vendas %}
+<h3 style="text-align:center; margin-bottom:10px;">🧾 Vendas Registradas</h3>
+<form method="POST" action="/vendas/excluir">
+    <table class="table-vendas">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="checkTodos"></th>
+                <th>Cliente</th>
+                <th>Pacote</th>
+                <th>Quantidade</th>
+                <th>Total (R$)</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venda in vendas %}
+            <tr>
+                <td><input type="checkbox" name="venda_ids" value="{{ venda.id }}"></td>
+                <td>{{ venda.cliente }}</td>
+                <td>{{ venda.pacote }}</td>
+                <td>{{ venda.quantidade }}</td>
+                <td>{{ "%.2f"|format(venda.valor_total|float) }}</td>
+                <td>{{ venda.data }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn" style="margin-top: 15px;">🗑️ Excluir Selecionadas</button>
+</form>
+
+{% else %}
+<p style="text-align:center; color:#888;">Nenhuma venda registrada ainda.</p>
+{% endif %}
+
+<!-- Modal -->
+<div id="modalResumo"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#00000088; z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; max-width:90%;">
+        <h3>Resumo da Venda</h3>
+        <p id="resumoVenda"></p>
+
+        <label>Forma de Pagamento:</label>
+        <select id="formaPagamento" style="width:100%; padding:8px;">
+            <option value="">Selecione</option>
+            <option value="pix">PIX</option>
+            <option value="carne">Carnê</option>
+        </select>
+
+        <div id="opcaoParcelamento" style="display:none; margin-top:10px;">
+            <label>Parcelar em:</label>
+            <select id="parcelas" style="width:100%; padding:8px;">
+                <option value="1">1x sem juros</option>
+                <option value="2">2x</option>
+                <option value="3">3x</option>
+                <option value="4">4x</option>
+                <option value="5">5x</option>
+                <option value="6">6x</option>
+            </select>
+        </div>
+
+        <button id="finalizarVenda" class="btn" style="margin-top:15px;">Finalizar Venda</button>
+
+        <div id="qrcodeContainer" style="margin-top:20px;"></div>
+
+        <button onclick="document.getElementById('modalResumo').style.display='none'" class="btn"
+            style="margin-top:10px; background:#aaa;">Cancelar</button>
+    </div>
+</div>
+
+<!-- QR Code lib -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+    const clienteSelect = document.getElementById("cliente");
+    const pacoteSelect = document.getElementById("pacote");
+    const quantidadeInput = document.querySelector("input[name='quantidade']");
+    const valorInput = document.querySelector("input[name='valor_total']");
+
+    clienteSelect.addEventListener("change", () => {
+        const idPassageiro = clienteSelect.options[clienteSelect.selectedIndex].getAttribute("data-id");
+        const reserva = Object.values({{ reservas | tojson | safe }}).find(r => r.id_passageiro == idPassageiro);
+
+    if (reserva) {
+        const idViagem = reserva.id_viagem;
+        for (let opt of pacoteSelect.options) {
+            if (opt.getAttribute("data-id") == idViagem.toString()) {
+                pacoteSelect.value = opt.value;
+
+                // Se quantidade estiver vazia, define como 1
+                if (!quantidadeInput.value) {
+                    quantidadeInput.value = 1;
+                }
+                updateValorTotal();
+                break;
+            }
+        }
+    }
+    });
+
+    pacoteSelect.addEventListener("change", updateValorTotal);
+    quantidadeInput.addEventListener("input", updateValorTotal);
+
+    function updateValorTotal() {
+        const preco = parseFloat(pacoteSelect.selectedOptions[0]?.getAttribute("data-valor") || 0);
+        const quantidade = parseInt(quantidadeInput.value || 0);
+        const total = (preco * quantidade).toFixed(2);
+        valorInput.value = isNaN(total) ? "" : total;
+    }
+
+    function abrirModalResumo() {
+        const cliente = clienteSelect.value;
+        const pacote = pacoteSelect.value;
+        const quantidade = quantidadeInput.value;
+        const valor_total = valorInput.value;
+
+        if (!cliente || !pacote || !quantidade || !valor_total) {
+            alert("Preencha todos os campos.");
+            return;
+        }
+
+
+
+        document.getElementById("resumoVenda").innerText = `Cliente: ${cliente}\nPacote: ${pacote}\nQuantidade: ${quantidade}\nTotal: R$ ${valor_total}`;
+        document.getElementById("modalResumo").style.display = "flex";
+    }
+
+    document.getElementById("formaPagamento").addEventListener("change", function () {
+        document.getElementById("opcaoParcelamento").style.display = this.value === "carne" ? "block" : "none";
+        document.getElementById("qrcodeContainer").innerHTML = "";
+    });
+
+document.getElementById("finalizarVenda").addEventListener("click", async function () {
+    const cliente = clienteSelect.value;
+    const pacote = pacoteSelect.value;
+    const quantidade = quantidadeInput.value;
+    const valor_total = valorInput.value;
+    const forma_pagamento = document.getElementById("formaPagamento").value;
+    const parcelas = document.getElementById("parcelas").value;
+
+    if (!cliente || !pacote || !quantidade || !valor_total || !forma_pagamento) {
+        alert("Preencha todos os campos.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("cliente", cliente);
+    formData.append("pacote", pacote);
+    formData.append("quantidade", quantidade);
+    formData.append("valor_total", valor_total);
+    formData.append("forma_pagamento", forma_pagamento);
+    if (forma_pagamento === "carne") {
+        formData.append("parcelas", parcelas);
+    }
+
+    const response = await fetch("/vendas/finalizar-ajax", {
+        method: "POST",
+        body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.status === "ok") {
+        if (forma_pagamento === "carne") {
+            window.open(`/vendas/${result.venda_id}/carne/exportar`, "_blank");
+        } else if (forma_pagamento === "pix") {
+            gerarQRCodePIX(result.venda_id, valor_total);
+        }
+
+        // Atualiza tabela de vendas
+        adicionarVendaNaTabela({
+            cliente,
+            pacote,
+            quantidade,
+            valor_total,
+            data: result.data
+        });
+
+        // Fecha o modal e reseta o formulário
+        document.getElementById("modalResumo").style.display = "none";
+        document.getElementById("formVenda").reset();
+        pacoteSelect.disabled = false;
+        document.getElementById("qrcodeContainer").innerHTML = "";
+        document.getElementById("formaPagamento").value = "";
+        document.getElementById("opcaoParcelamento").style.display = "none";
+    } else {
+        alert("Erro ao registrar a venda.");
+    }
+});
+
+
+    function gerarQRCodePIX(venda_id, valor) {
+        const codigoPix = `00020126360014BR.GOV.BCB.PIX011112345678901520400005303986540${valor.replace('.', '')}5802BR5913Cliente Exemplo6009SAO PAULO62070503***6304ABCD`; // Exemplo
+        const container = document.getElementById("qrcodeContainer");
+        container.innerHTML = "";
+
+        const qrCanvas = document.createElement("canvas");
+        QRCode.toCanvas(qrCanvas, codigoPix, function (error) {
+            if (error) console.error(error);
+            container.appendChild(qrCanvas);
+        });
+
+        const legenda = document.createElement("p");
+        legenda.innerText = "Escaneie com seu app de banco para pagar via PIX.";
+        container.appendChild(legenda);
+    }
+
+    document.getElementById("checkTodos").addEventListener("change", function () {
+        const checkboxes = document.querySelectorAll("input[name='venda_ids']");
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+
+function adicionarVendaNaTabela(venda) {
+    const tabelaExistente = document.querySelector(".table-vendas");
+    let tbody = tabelaExistente?.querySelector("tbody");
+
+    if (!tbody) {
+        // Cria a tabela do zero se não existir
+        const novaTabelaHTML = `
+            <h3 style="text-align:center; margin-bottom:10px;">🧾 Vendas Registradas</h3>
+            <form method="POST" action="/vendas/excluir">
+                <table class="table-vendas">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="checkTodos"></th>
+                            <th>Cliente</th>
+                            <th>Pacote</th>
+                            <th>Quantidade</th>
+                            <th>Total (R$)</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <button type="submit" class="btn" style="margin-top: 15px;">🗑️ Excluir Selecionadas</button>
+            </form>
+        `;
+        const p = document.querySelector("p");
+        if (p) p.remove();
+        document.getElementById("formVenda").insertAdjacentHTML("afterend", novaTabelaHTML);
+        tbody = document.querySelector(".table-vendas tbody");
+
+        // Reativar evento do checkTodos
+        setTimeout(() => {
+            document.getElementById("checkTodos").addEventListener("change", function () {
+                const checkboxes = document.querySelectorAll("input[name='venda_ids']");
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            });
+        }, 100);
+    }
+
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+        <td><input type="checkbox" name="venda_ids" value="NOVA"></td>
+        <td>${venda.cliente}</td>
+        <td>${venda.pacote}</td>
+        <td>${venda.quantidade}</td>
+        <td>${parseFloat(venda.valor_total).toFixed(2)}</td>
+        <td>${venda.data}</td>
+    `;
+    tbody.prepend(linha);
+}
+
+
+</script>
+{% endblock %}

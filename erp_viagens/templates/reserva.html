@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block titulo %}Reserva de Poltrona{% endblock %}
+
+{% block conteudo %}
+<h2>🪑 Selecionar Poltrona - Viagem #{{ id_viagem }}</h2>
+
+<form id="form-reserva">
+    <label for="id_passageiro">Passageiro:</label>
+    <select name="id_passageiro" required>
+        <option value="">Selecione</option>
+        {% for p in passageiros %}
+            <option value="{{ p.id }}">{{ p.nome }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="hidden" name="id_viagem" value="{{ id_viagem }}">
+    <input type="hidden" name="poltrona" id="poltrona-selecionada">
+
+    <div id="mapa-poltronas">
+        {% for i in range(0, poltronas|length, 4) %}
+            <div class="fileira">
+                {% set esq1 = poltronas[i] if i < poltronas|length else None %}
+                {% set esq2 = poltronas[i+1] if i+1 < poltronas|length else None %}
+                {% set dir2 = poltronas[i+2] if i+2 < poltronas|length else None %}
+                {% set dir1 = poltronas[i+3] if i+3 < poltronas|length else None %}
+
+                <!-- Lado esquerdo -->
+                {% if esq1 %}
+                    <button type="button" class="poltrona {{ 'ocupada' if esq1.status == 'ocupada' else '' }}" data-numero="{{ esq1.numero }}" {% if esq1.status == 'ocupada' %}disabled{% endif %}>{{ esq1.numero }}</button>
+                {% endif %}
+                {% if esq2 %}
+                    <button type="button" class="poltrona {{ 'ocupada' if esq2.status == 'ocupada' else '' }}" data-numero="{{ esq2.numero }}" {% if esq2.status == 'ocupada' %}disabled{% endif %}>{{ esq2.numero }}</button>
+                {% endif %}
+
+                <div class="corredor"></div>
+
+                <!-- Lado direito -->
+                {% if dir1 %}
+                    <button type="button" class="poltrona {{ 'ocupada' if dir1.status == 'ocupada' else '' }}" data-numero="{{ dir1.numero }}" {% if dir1.status == 'ocupada' %}disabled{% endif %}>{{ dir1.numero }}</button>
+                {% endif %}
+                {% if dir2 %}
+                    <button type="button" class="poltrona {{ 'ocupada' if dir2.status == 'ocupada' else '' }}" data-numero="{{ dir2.numero }}" {% if dir2.status == 'ocupada' %}disabled{% endif %}>{{ dir2.numero }}</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <br>
+    <button type="submit">Confirmar Reserva</button>
+</form>
+
+<style>
+#mapa-poltronas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+.fileira {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.corredor {
+    width: 40px;
+}
+.poltrona {
+    width: 50px;
+    height: 50px;
+    background-color: #7FFF7F;
+    border: 1px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.poltrona.ocupada {
+    background-color: #FF6666;
+    cursor: not-allowed;
+}
+.poltrona.selecionada {
+    background-color: #3366FF;
+    color: white;
+}
+</style>
+
+<script>
+const botoes = document.querySelectorAll(".poltrona");
+let selecionada = null;
+
+botoes.forEach(btn => {
+    if (!btn.classList.contains("ocupada")) {
+        btn.addEventListener("click", () => {
+            if (selecionada) selecionada.classList.remove("selecionada");
+            btn.classList.add("selecionada");
+            selecionada = btn;
+            document.getElementById("poltrona-selecionada").value = btn.dataset.numero;
+        });
+    }
+});
+
+document.getElementById("form-reserva").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const dados = new FormData(this);
+
+    const resposta = await fetch("/reservar", {
+        method: "POST",
+        body: dados
+    });
+
+    const resultado = await resposta.json();
+
+    if (resultado.erro) {
+        alert(resultado.erro);
+    } else {
+        window.location.href = resultado.redirect;
+    }
+
+});
+</script>
+{% endblock %}

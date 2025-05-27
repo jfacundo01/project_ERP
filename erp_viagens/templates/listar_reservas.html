@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}Reservas{% endblock %}
+{% block conteudo %}
+
+<style>
+    .viagens-container {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+    .viagem-caixa {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+    }
+    .viagem-caixa h3 {
+        margin-top: 0;
+        color: #2a3f54;
+        border-bottom: 2px solid #4A90E2;
+        padding-bottom: 8px;
+    }
+    .reservas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 15px;
+    }
+    .reserva-caixa {
+        border: 2px solid #4A90E2;
+        border-radius: 10px;
+        padding: 14px 18px;
+        background-color: #f0f7ff;
+        box-shadow: 0 4px 8px rgb(74 144 226 / 0.2);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        cursor: default;
+    }
+    .reserva-caixa:hover {
+        background-color: #d7e6ff;
+        box-shadow: 0 8px 16px rgb(74 144 226 / 0.4);
+    }
+    label, select {
+        font-size: 1rem;
+    }
+    select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+    }
+</style>
+
+<h2>📋 Reservas</h2>
+
+<div style="margin-bottom: 20px;">
+    <label for="filtroDestino"><strong>Filtrar por destino:</strong></label>
+    <select id="filtroDestino">
+        <option value="todos">Todos</option>
+        {% for d in destinos %}
+            <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="viagens-container" id="viagens-container">
+    {% set destino_atual = None %}
+    {% for destino in destinos %}
+        <div class="viagem-caixa" data-destino="{{ destino }}">
+            <h3>Destino: {{ destino }}</h3>
+            <div class="reservas-lista">
+                {% for r in reservas %}
+                    {% if r["destino"] == destino %}
+                    <div class="reserva-caixa">
+                        <p><strong>ID:</strong> {{ r["id"] }}</p>
+                        <p><strong>Passageiro:</strong> {{ r["passageiro"] }}</p>
+                        <p><strong>Poltrona:</strong> {{ r["poltrona"] }}</p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+document.getElementById('filtroDestino').addEventListener('change', function () {
+    const destinoSelecionado = this.value;
+    const caixasViagem = document.querySelectorAll("#viagens-container .viagem-caixa");
+
+    caixasViagem.forEach(caixa => {
+        const destino = caixa.getAttribute("data-destino");
+        caixa.style.display = (destinoSelecionado === "todos" || destino === destinoSelecionado) ? "block" : "none";
+    });
+});
+</script>
+
+{% endblock %}

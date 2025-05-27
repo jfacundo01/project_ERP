@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titulo %}Cadastrar Empresa{% endblock %}
+
+{% block conteudo %}
+<h2>🏢 Cadastro da Empresa</h2>
+<form method="post" action="/empresa">
+    <label>Nome da Empresa:</label>
+    <input type="text" name="nome" value="{{ empresa.nome if empresa }}" required><br>
+
+    <label>CNPJ:</label>
+    <input type="text" name="cnpj" value="{{ empresa.cnpj if empresa }}" required><br>
+
+    <label>Endereço:</label>
+    <input type="text" name="endereco" value="{{ empresa.endereco if empresa }}" required><br>
+
+    <label>Telefone:</label>
+    <input type="text" name="telefone" value="{{ empresa.telefone if empresa }}" required><br>
+
+    <label>Email:</label>
+    <input type="email" name="email" value="{{ empresa.email if empresa }}" required><br>
+
+    <button type="submit">Salvar</button>
+</form>
+<a href="/painel">⬅ Voltar ao Painel</a>
+{% endblock %}

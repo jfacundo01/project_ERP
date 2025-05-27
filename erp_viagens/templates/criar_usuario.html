@@ -1,0 +1,16 @@
+{% extends "base_login.html" %}
+
+{% block content %}
+<h2>Criar novo usuário</h2>
+<form method="post">
+    <input type="text" name="nome" placeholder="Nome completo" required>
+    <input type="email" name="email" placeholder="Novo e-mail" required>
+    <input type="password" name="senha" placeholder="Nova senha" required>
+    <input type="password" name="senha_admin" placeholder="Senha do administrador" required>
+    <button type="submit">Criar Usuário</button>
+</form>
+
+{% if erro %}
+<p style="color: red;">{{ erro }}</p>
+{% endif %}
+{% endblock %}

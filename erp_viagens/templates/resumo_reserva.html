@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Resumo da Reserva{% endblock %}
+{% block conteudo %}
+<h2>Resumo da Reserva</h2>
+<p><strong>Passageiro:</strong> {{ passageiro.nome }}</p>
+<p><strong>Destino:</strong> {{ viagem.destino }}</p>
+<p><strong>Data:</strong> {{ viagem.data_saida }} {{ viagem.hora_saida }}</p>
+<p><strong>Poltrona:</strong> {{ reserva.poltrona }}</p>
+<p><strong>Status Pagamento:</strong> {{ reserva.status_pagamento }}</p>
+
+<!-- Botão para mostrar o QR Code -->
+<button onclick="document.getElementById('pix-section').style.display='block'">
+    💳 Receber Pagamento via PIX
+</button>
+
+<!-- Seção inicialmente escondida -->
+<div id="pix-section" style="display:none; margin-top:20px; border-top:1px solid #ccc; padding-top:10px;">
+    <h3>Pagamento via PIX</h3>
+    <p><strong>Chave PIX:</strong> {{ chave_pix }}</p>
+    <p><strong>Valor:</strong> R$ {{ valor }}</p>
+    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code PIX">
+</div>
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<a href="/reservas">🔙 Ver Todas as Reservas</a>
+{% endblock %}
