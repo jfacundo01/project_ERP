@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block titulo %}Viagens{% endblock %}
+{% block conteudo %}
+<h2>🚌 Viagens</h2>
+
+<form id="formExcluirViagens" method="POST" action="/viagens/excluir-multiplas">
+    <table id="tabela-viagens">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="checkTodosViagens"></th>
+                <th>ID</th>
+                <th>Origem</th>
+                <th>Destino</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in viagens %}
+            <tr data-id="{{ v.id }}">
+                <td><input type="checkbox" name="viagem_ids" value="{{ v.id }}"></td>
+                <td>{{ v.id }}</td>
+                <td>{{ v.origem }}</td>
+                <td>{{ v.destino }}</td>
+                <td>{{ v.data_saida }}</td>
+                <td>{{ v.hora_saida }}</td>
+                <td style="white-space: nowrap;">
+                    <button class="btn-detalhes" type="button" data-id="{{ v.id }}"
+                        data-origem="{{ v.origem }}" data-destino="{{ v.destino }}"
+                        data-data="{{ v.data_saida }}" data-hora="{{ v.hora_saida }}"
+                        data-paradas="{{ v.paradas | join(', ') if v.paradas else 'Nenhuma' }}"
+                        style="background-color: #0ea5e9; color: white; padding: 4px 8px; border-radius: 4px; margin-right: 6px;">
+                        Detalhes
+                    </button>
+                    <button class="btn-excluir" type="button" data-id="{{ v.id }}"
+                        style="background-color: #e74c3c; color: white;">
+                        Excluir
+                    </button>
+                    <a href="/reserva/{{ v.id }}" class="btn-reservar"
+                        style="background-color: #28a745; color: white; padding: 4px 8px; margin-left: 6px; border-radius: 4px; text-decoration: none;">
+                        Reservar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit"
+        style="margin-top: 20px; background-color: #ef4444; color: white; padding: 10px 16px; border-radius: 6px;">
+        🗑️ Excluir Selecionadas
+    </button>
+</form>
+
+<div style="text-align: right; margin-top: 30px;">
+    <label for="selecionarViagem" style="font-weight: bold; margin-right: 10px;">Selecionar Viagem:</label>
+    <select id="selecionarViagem" style="padding: 8px; border-radius: 6px;">
+        <option value="">-- Escolha uma viagem --</option>
+        {% for v in viagens %}
+        <option value="{{ v.id }}">#{{ v.id }} - {{ v.origem }} ➜ {{ v.destino }}</option>
+        {% endfor %}
+    </select>
+    <a id="btnListaPassageiros" class="btn-listar"
+        style="cursor: pointer; margin-left: 10px; padding: 10px 16px; background-color: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        📋 Lista de Passageiros
+    </a>
+</div>
+
+<div id="modalDetalhes" style="display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%;">
+        <h3>📝 Detalhes da Viagem</h3>
+        <p><strong>Origem:</strong> <span id="detalheOrigem"></span></p>
+        <p><strong>Destino:</strong> <span id="detalheDestino"></span></p>
+        <p><strong>Data:</strong> <span id="detalheData"></span></p>
+        <p><strong>Hora:</strong> <span id="detalheHora"></span></p>
+        <p><strong>Paradas:</strong> <span id="detalheParadas"></span></p>
+        <div style="text-align: right;">
+            <button onclick="document.getElementById('modalDetalhes').style.display='none'"
+                style="background-color: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 20px;">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tabela = document.getElementById("tabela-viagens");
+
+    tabela.addEventListener("click", async (event) => {
+        // Botão EXCLUIR individual
+        if (event.target.classList.contains("btn-excluir")) {
+            const btn = event.target;
+            const id = btn.getAttribute("data-id");
+            if (confirm("Tem certeza que deseja excluir esta viagem?")) {
+                try {
+                    const response = await fetch(`/viagens/excluir/${id}`, { method: "POST" });
+                    const data = await response.json();
+                    if (data.success) {
+                        btn.closest("tr").remove();
+                    } else {
+                        alert("Erro ao excluir: " + (data.error || "Erro desconhecido"));
+                    }
+                } catch (err) {
+                    alert("Erro na requisição: " + err.message);
+                }
+            }
+        }
+
+        // Botão DETALHES
+        if (event.target.classList.contains("btn-detalhes")) {
+            const btn = event.target;
+            document.getElementById("detalheOrigem").innerText = btn.dataset.origem;
+            document.getElementById("detalheDestino").innerText = btn.dataset.destino;
+            document.getElementById("detalheData").innerText = btn.dataset.data;
+            document.getElementById("detalheHora").innerText = btn.dataset.hora;
+            document.getElementById("detalheParadas").innerText = btn.dataset.paradas;
+            document.getElementById("modalDetalhes").style.display = "flex";
+        }
+    });
+
+
+    // Checkbox "selecionar todos"
+    document.getElementById("checkTodosViagens").addEventListener("change", function () {
+        const checkboxes = document.querySelectorAll("input[name='viagem_ids']");
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+});
+
+
+    // Exibir passageiros
+document.getElementById('btnListaPassageiros').addEventListener('click', () => {
+    const viagemId = document.getElementById('selecionarViagem').value;
+    if (viagemId) {
+        // Redirecionar para a rota de passageiros da viagem selecionada
+        window.location.href = `/viagens/${viagemId}/passageiros`;
+    } else {
+        alert("Selecione uma viagem primeiro!");
+    }
+});
+
+</script>
+{% endblock %}

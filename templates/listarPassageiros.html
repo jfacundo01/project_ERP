@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block titulo %}Passageiros da Viagem{% endblock %}
+
+{% block conteudo %}
+<div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
+    <a href="/viagens/{{ viagem.id }}/passageiros/exportar?formato=pdf" class="btn-exportar"
+        style="background-color: #6366f1; color: white; padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 5px;">
+        <span>📄 Exportar PDF</span>
+    </a>
+</div>
+
+<h2>👥 Passageiros da Viagem {{ viagem.destino }}</h2>
+<p><strong>Origem:</strong> {{ viagem.origem }} | <strong>Destino:</strong> {{ viagem.destino }}</p>
+<p><strong>Data:</strong> {{ viagem.data_saida }} | <strong>Hora:</strong> {{ viagem.hora_saida }}</p>
+
+{% if passageiros %}
+<div style="overflow-x: auto; margin-top: 20px;">
+    <table>
+        <thead>
+            <tr>
+                <th>Poltrona</th>
+                <th>Nome</th>
+                <th>CPF</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in passageiros %}
+            <tr>
+                <td>{{ p.poltrona }}</td>
+                <td>{{ p.nome }}</td>
+                <td>{{ p.cpf }}</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert">Nenhum passageiro encontrado para esta viagem.</div>
+{% endif %}
+
+<a href="/viagens" style="display: inline-block; margin-top: 20px;">⬅ Voltar para lista de viagens</a>
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f3f4f6;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9fafb;
+    }
+
+    .alert {
+        background: #fef3c7;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .btn-exportar {
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-exportar:hover {
+        background-color: #4f46e5;
+    }
+</style>
+{% endblock %}

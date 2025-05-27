@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<h2 style="text-align:center;">📄 Carnê da Venda</h2>
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 0 10px #ddd;">
+
+    <p><strong>Cliente:</strong> {{ venda.cliente }}</p>
+    <p><strong>Pacote:</strong> {{ venda.pacote }}</p>
+    <p><strong>Forma de Pagamento:</strong> Carnê</p>
+    <p><strong>Parcelas:</strong> {{ parcelas }}</p>
+    <p><strong>Total:</strong> R$ {{ "%.2f"|format(venda.valor_total|float) }}</p>
+    <hr>
+
+    <h3 style="text-align:center;">Carnês Gerados:</h3>
+    <a href="/vendas/{{ venda.id }}/carne/pdf" class="btn" style="display:block; text-align:center; margin-top: 20px;">📥 Baixar Carnê em PDF</a>
+
+    {% for i in range(parcelas) %}
+        <div style="border: 1px dashed #aaa; padding: 15px; margin-bottom: 15px;">
+            <p><strong>Parcela {{ i + 1 }} de {{ parcelas }}</strong></p>
+            <p>Valor: R$ {{ "%.2f"|format(parcelas_valores[i]) }}</p>
+            <p>Vencimento: {{ vencimentos[i] }}</p>
+            <p>Código Carnê: <code>CN{{ venda.id[:6] }}{{ i + 1 }}</code></p>
+        </div>
+    {% endfor %}
+
+    
+</div>
+{% endblock %}

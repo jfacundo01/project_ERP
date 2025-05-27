@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<h2 style="margin-bottom: 20px;">📄 Gerador de Documentos</h2>
+
+<style>
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    .btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .btn:hover {
+        background-color: #2563eb;
+    }
+
+    .btn-download {
+        background-color: #10b981;
+        margin-left: 10px;
+    }
+
+    .btn-download:hover {
+        background-color: #059669;
+    }
+
+    .resultado {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 12px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        white-space: normal;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Estilo moderno para voucher */
+    .resultado.voucher {
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-left: 6px solid #ef4444;
+        padding: 25px 30px;
+    }
+
+    .resultado.voucher header {
+        border-bottom: 2px solid #ef4444;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .resultado.voucher header h1 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #ef4444;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .resultado.voucher .voucher-id {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 6px;
+    }
+
+    .resultado.voucher .details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 25px;
+        font-size: 1rem;
+    }
+
+    .resultado.voucher .details div {
+        background: #f9f9f9;
+        padding: 12px 15px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .resultado.voucher .details strong {
+        color: #ef4444;
+    }
+
+    .resultado.voucher footer {
+        margin-top: 30px;
+        font-style: italic;
+        font-size: 1rem;
+        text-align: center;
+        color: #555;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+
+    /* Estilo para contrato e recibo */
+    .resultado.contrato, .resultado.recibo {
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        border-left: 6px solid #3b82f6; /* azul */
+        padding: 25px 30px;
+        line-height: 1.6;
+    }
+
+    .resultado.contrato h1,
+    .resultado.recibo h1 {
+        text-align: center;
+        font-weight: 700;
+        color: #3b82f6;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    .resultado.contrato p,
+    .resultado.recibo p {
+        white-space: pre-wrap;
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .resultado.contrato .assinaturas,
+    .resultado.recibo .assinaturas {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .resultado.contrato .assinaturas div,
+    .resultado.recibo .assinaturas div {
+        border-top: 1px solid #aaa;
+        padding-top: 10px;
+        width: 40%;
+        text-align: center;
+        color: #555;
+        font-style: italic;
+    }
+
+    @media (max-width: 480px) {
+        .resultado.voucher {
+            padding: 20px 15px;
+        }
+        .resultado.voucher .details {
+            grid-template-columns: 1fr;
+        }
+        .resultado.contrato .assinaturas,
+        .resultado.recibo .assinaturas {
+            flex-direction: column;
+            gap: 20px;
+        }
+        .resultado.contrato .assinaturas div,
+        .resultado.recibo .assinaturas div {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <form id="formDocumento">
+        <label for="tipo">Tipo de Documento:</label>
+        <select id="tipo" name="tipo" required>
+            <option value="">Selecione</option>
+            <option value="voucher">Voucher</option>
+            <option value="contrato">Contrato</option>
+            <option value="recibo">Recibo</option>
+        </select>
+
+        <label for="nome">Nome do Cliente:</label>
+        <input type="text" id="nome" name="nome" required>
+
+        <label for="descricao">Descrição / Observações:</label>
+        <textarea id="descricao" name="descricao" rows="4"></textarea>
+
+        <button type="submit" class="btn">Gerar Documento</button>
+        <button type="button" id="btnDownload" class="btn btn-download" style="display:none;">Salvar em PDF</button>
+    </form>
+
+    <div id="resultado" class="resultado" style="display: none;"></div>
+</div>
+
+<!-- CDN html2canvas para capturar estilo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+    const form = document.getElementById("formDocumento");
+    const resultadoDiv = document.getElementById("resultado");
+    const btnDownload = document.getElementById("btnDownload");
+
+    let tipoDocumento = "";
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        tipoDocumento = document.getElementById("tipo").value;
+        const nome = document.getElementById("nome").value;
+        const descricao = document.getElementById("descricao").value;
+        const data = new Date().toLocaleDateString();
+
+        resultadoDiv.className = "resultado";
+        btnDownload.style.display = "none";
+
+        if (tipoDocumento === "voucher") {
+            resultadoDiv.classList.add("voucher");
+            const codigoVoucher = "VCH-" + Math.floor(Math.random() * 900000 + 100000);
+            resultadoDiv.innerHTML = `
+                <header>
+                    <h1>Voucher de Serviço</h1>
+                    <p class="voucher-id">Código: ${codigoVoucher}</p>
+                </header>
+                <section class="details">
+                    <div><strong>Cliente:</strong> ${nome}</div>
+                    <div><strong>Data de Emissão:</strong> ${data}</div>
+                    <div style="grid-column: span 2;"><strong>Descrição:</strong> ${descricao || "-"}</div>
+                </section>
+                <footer>
+                    <p>Apresente este voucher no dia do embarque. Obrigado por escolher nossa empresa!</p>
+                </footer>
+            `;
+        } else if (tipoDocumento === "contrato") {
+            resultadoDiv.classList.add("contrato");
+            resultadoDiv.innerHTML = `
+                <h1>Contrato de Prestação de Serviço</h1>
+                <p>Entre a empresa e o(a) cliente <strong>${nome}</strong>, firmamos o presente contrato em <strong>${data}</strong>.</p>
+                <p><strong>Objeto:</strong><br>${descricao.replace(/\n/g, "<br>") || "-"}</p>
+                <div class="assinaturas">
+                    <div>Cliente<br>________________________</div>
+                    <div>Empresa<br>________________________</div>
+                </div>
+            `;
+        } else if (tipoDocumento === "recibo") {
+            resultadoDiv.classList.add("recibo");
+            resultadoDiv.innerHTML = `
+                <h1>Recibo</h1>
+                <p>Recebemos de <strong>${nome}</strong>, na data de <strong>${data}</strong>, a importância referente a:</p>
+                <p>${descricao.replace(/\n/g, "<br>") || "-"}</p>
+                <div class="assinaturas">
+                    <div>Assinatura da Empresa<br>________________________</div>
+                </div>
+            `;
+        }
+
+        resultadoDiv.style.display = "block";
+        btnDownload.style.display = "inline-block";
+    });
+
+    btnDownload.addEventListener("click", async () => {
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF("p", "pt", "a4");
+        const resultado = document.getElementById("resultado");
+
+        await html2canvas(resultado, { scale: 2 }).then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, "PNG", 20, 20, pdfWidth - 40, pdfHeight);
+            pdf.save(tipoDocumento + ".pdf");
+        });
+    });
+</script>
+
+
+{% endblock %}

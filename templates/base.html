@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{% block titulo %}{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(to right, #004aad, #00c6ff);
+            color: white;
+            height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+            font-size: larger;
+        }
+
+        .sidebar a:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(to right, #004badcd, #02488a);
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+            background: #f4f4f4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .btn.red {
+            background: #f44336;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3>🚌 Painel de viagens</h3>
+        <a href="/painel">🏠 Início</a>
+        <a href="/viagens">🛣️ Viagens</a>
+        <a href="/viagens/nova">➕ Nova Viagem</a>
+        <a href="/passageiros">👤 Passageiros</a>
+        <a href="/passageiros/novo">➕ Novo Passageiro</a>
+        <a href="/reservas">📋 Reservas</a>
+        <a href="/documentos" class="menu-link">📄 Documentos</a>
+        <a href="/logout">Sair</a>
+
+
+
+    </div>
+    <div class="content">
+
+        {% block conteudo %}
+        <footer style="text-align:center; padding:20px; font-size:0.9rem; color:#555;">
+            {% if empresa %}
+            <div>
+                <p>{{ empresa.nome }}</p> • {{ empresa.telefone }}<br>
+                {{ empresa.endereco }} • CNPJ: {{ empresa.cnpj }}<br>
+                <a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>
+            </div>
+
+
+            {% endif %}
+        </footer>
+
+
+        {% endblock %}
+    </div>
+
+</body>
+
+</html>

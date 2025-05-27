@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<h2 style="margin-bottom: 20px;">🚣️ Nova Viagem</h2>
+
+<style>
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        margin-top: 15px;
+    }
+    input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+    .btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .btn:hover {
+        background-color: #dc2626;
+    }
+    .alert {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 10px 15px;
+        border: 1px solid #fde68a;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+    .parada-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="form-container">
+    <div id="alerta" class="alert" style="display:none;"></div>
+    <form id="formViagem">
+        <label for="origem">Origem:</label>
+        <input type="text" id="origem" name="origem" required>
+
+        <label for="destino">Destino:</label>
+        <input type="text" id="destino" name="destino" required>
+
+        <label for="data_saida">Data de saída:</label>
+        <input type="date" id="data_saida" name="data_saida" required>
+
+        <label for="hora_saida">Hora de saída:</label>
+        <input type="time" id="hora_saida" name="hora_saida" required>
+
+        <label for="preco">Preço (R$):</label>
+        <input type="number" id="preco" name="preco" step="0.01" required>
+
+        <label for="total_poltronas">Total de Poltronas:</label>
+        <input type="number" id="total_poltronas" name="total_poltronas" required>
+
+        <label>Paradas (opcional):</label>
+        <div id="paradas-container"></div>
+        <button type="button" class="btn" style="background-color: #3b82f6" onclick="adicionarParada()">➕ Adicionar Parada</button>
+
+        <button type="submit" class="btn">Salvar Viagem</button>
+    </form>
+</div>
+
+<script>
+function adicionarParada() {
+    const container = document.getElementById('paradas-container');
+    const paradaInput = document.createElement('input');
+    paradaInput.type = 'text';
+    paradaInput.name = 'paradas';
+    paradaInput.placeholder = 'Nome da parada';
+    paradaInput.className = 'parada-group';
+    container.appendChild(paradaInput);
+}
+
+document.getElementById('formViagem').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const alerta = document.getElementById('alerta');
+    alerta.style.display = 'none';
+    alerta.innerText = '';
+
+    const origem = document.getElementById('origem').value.trim();
+    const destino = document.getElementById('destino').value.trim();
+    const data_saida = document.getElementById('data_saida').value;
+    const hora_saida = document.getElementById('hora_saida').value;
+    const preco = parseFloat(document.getElementById('preco').value);
+    const total_poltronas = parseInt(document.getElementById('total_poltronas').value);
+    const paradas = Array.from(document.getElementsByName('paradas')).map(input => input.value.trim()).filter(p => p);
+
+    if (preco <= 0 || total_poltronas <= 0) {
+        alerta.style.display = 'block';
+        alerta.innerText = 'Preço e total de poltronas devem ser maiores que zero.';
+        return;
+    }
+
+    try {
+        const response = await fetch('/viagens/nova', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                origem,
+                destino,
+                data_saida,
+                hora_saida,
+                preco,
+                total_poltronas,
+                paradas
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alerta.style.display = 'block';
+            alerta.style.color = 'green';
+            alerta.style.background = '#d1fae5';
+            alerta.style.borderColor = '#a7f3d0';
+            alerta.innerText = 'Viagem salva com sucesso!';
+            document.getElementById('formViagem').reset();
+            document.getElementById('paradas-container').innerHTML = '';
+        } else {
+            alerta.style.display = 'block';
+            alerta.innerText = data.error || 'Erro desconhecido ao salvar a viagem.';
+        }
+    } catch (err) {
+        alerta.style.display = 'block';
+        alerta.innerText = 'Erro na requisição: ' + err.message;
+    }
+});
+</script>
+{% endblock %}
